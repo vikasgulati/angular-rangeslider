@@ -31,7 +31,8 @@
                 orientation: 'horizontal',
                 step: 0,
                 decimalPlaces: 0,
-                showValues: true
+                showValues: true,
+                canBeEqual: true
             },
 
             onEvent = (EVENT === 1 ? 'mousedown' : EVENT === 2 ? 'MSPointerDown' : 'touchstart') + eventNamespace + 'X',
@@ -84,7 +85,8 @@
                 filter: '@',
                 filterOptions: '@',
                 showValues: '@',
-                pinHandle: '@'
+                pinHandle: '@',
+                canBeEqual: '@'
             },
             link: function(scope, element, attrs, controller) {
 
@@ -139,6 +141,14 @@
                 attrs.$observe('decimalPlaces', function (val) {
                     if (!angular.isDefined(val)) {
                         scope.decimalPlaces = defaults.decimalPlaces;
+                    }
+                });
+
+                attrs.$observe('canBeEqual', function (val) {
+                    if (!angular.isDefined(val)) {
+                        scope.canBeEqual = defaults.canBeEqual;
+                    }else{
+                        scope.canBeEqual = val !== 'false';
                     }
                 });
 
@@ -362,7 +372,7 @@
                                 if (index === 0) {
                                     proposal = proposal > otherModelPosition ? otherModelPosition : proposal;
                                 } else if (index === 1) {
-                                    proposal = proposal < otherModelPosition ? otherModelPosition : proposal;
+                                    proposal = proposal <= otherModelPosition ? otherModelPosition : proposal;
                                 }
 
                                 if (scope.step > 0) {
@@ -373,22 +383,35 @@
                                     }
                                 }
 
+
                                 if (proposal > 95 && index === 0) {
                                     $handle.css('z-index', '3');
                                 } else {
                                     $handle.css('z-index', '');
                                 }
 
-                                if (movement[orientation] && proposal != previousProposal) {
+                                var min = parseInt(scope.min),
+                                    calcVal = function(prop){
+                                        return parseFloat((((prop * range) / 100) + min)).toFixed(scope.decimalPlaces);
+                                    },
+                                    proposalVal = calcVal(proposal),
+                                    canSet = true;
 
+                                //test value with otherModel's value if equal value can't be set
+                                if(!scope.canBeEqual){
+                                    var otherModelVal = calcVal(otherModelPosition),
+                                        diff = Math.abs(proposalVal - otherModelVal);
+                                    canSet = diff>=scope.step;
+                                }
+
+
+                                if (canSet && movement[orientation] && proposal != previousProposal) {
                                     if (index === 0) {
-
                                         // update model as we slide
-                                        scope.modelMin = parseFloat((((proposal * range) / 100) + scope.min)).toFixed(scope.decimalPlaces);
+                                        scope.modelMin = parseFloat((((proposal * range) / 100) + min)).toFixed(scope.decimalPlaces);
 
                                     } else if (index === 1) {
-
-                                        scope.modelMax = parseFloat((((proposal * range) / 100) + scope.min)).toFixed(scope.decimalPlaces);
+                                        scope.modelMax = parseFloat((((proposal * range) / 100) + min)).toFixed(scope.decimalPlaces);
                                     }
 
                                     // update angular
