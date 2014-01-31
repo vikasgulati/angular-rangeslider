@@ -343,7 +343,6 @@
                                 var currentClick = client(e),
                                     movement,
                                     proposal,
-                                    other,
                                     per,
                                     otherModelPosition = (((index === 0 ? scope.modelMax : scope.modelMin) - scope.min) / range) * 100;
 
@@ -372,7 +371,7 @@
                                 if (index === 0) {
                                     proposal = proposal > otherModelPosition ? otherModelPosition : proposal;
                                 } else if (index === 1) {
-                                    proposal = proposal <= otherModelPosition ? otherModelPosition : proposal;
+                                    proposal = proposal < otherModelPosition ? otherModelPosition : proposal;
                                 }
 
                                 if (scope.step > 0) {
